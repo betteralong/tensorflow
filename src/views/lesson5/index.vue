@@ -9,11 +9,11 @@
                 {{item.label}}
             </button>
         </div>
-        <button onclick="save()">保存</button>
+        <button @click="onSave">保存</button>
         <pre >{{count}}</pre>
         <button @click="onTrain">训练</button>
         <br><br>
-        监听开关：<input type="checkbox" v-model="checked" @change="onCheck" />
+        监听开关：<input type="checkbox" v-model="checked" @change="onChange" />
     </div>
 </template>
 
@@ -23,13 +23,14 @@ import * as tfvis from '@tensorflow/tfjs-vis';
 import { ref, onMounted, nextTick } from "vue"
 export default {
     setup() {
-        const MODEL_PATH = 'http://172.16.22.77:3000';
+        const MODEL_PATH = 'http://127.0.0.1:3000';
+         let hasTrained = false
         let transferRecognizer;
         const count = ref(0)
         const checked = ref(false);
         const labelList = ref([
             {
-                label: '开始',
+                label: '播放',
                 disabled: false
             },
             {
@@ -55,6 +56,7 @@ export default {
         }
 
         const onChange = async() => {
+            if (!hasTrained) return
             if (checked.value) {
                 await transferRecognizer.listen(result => {
                     const { scores } = result;
@@ -71,7 +73,6 @@ export default {
         }
 
         const onTrain = async () => {
-            console.log('123')
             await transferRecognizer.train({
                 epochs: 30,
                 callback: tfvis.show.fitCallbacks(
@@ -80,6 +81,7 @@ export default {
                     { callbacks: ['onEpochEnd'] }
                 )
             });
+            hasTrained = true
         }
 
         const onSave = () => {
@@ -105,6 +107,7 @@ export default {
 
         return {
             count,
+            checked,
             labelList,
 
             onSave,

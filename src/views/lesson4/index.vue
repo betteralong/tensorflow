@@ -27,37 +27,37 @@ export default {
         }
 
         onMounted(async() => {
-             tfvis.render.scatterplot(
-                { name: '逻辑回归训练数据' },
-                {
-                    values: [
-                        data.filter(p => p.label === 1),
-                        data.filter(p => p.label === 0),
-                    ]
-                }
-            );
-            model = tf.sequential();
-            model.add(tf.layers.dense({
-                units: 1,
-                inputShape: [2],
-                activation: 'sigmoid'
-            }));
-            model.compile({
-                loss: tf.losses.logLoss,
-                optimizer: tf.train.adam(0.1)
-            });
+          tfvis.render.scatterplot(
+              { name: '逻辑回归训练数据' },
+              {
+                  values: [
+                      data.filter(p => p.label === 1),
+                      data.filter(p => p.label === 0),
+                  ]
+              }
+          );
+          model = tf.sequential();
+          model.add(tf.layers.dense({
+              units: 1,
+              inputShape: [2],
+              activation: 'sigmoid'
+          }));
+          model.compile({
+              loss: tf.losses.logLoss,
+              optimizer: tf.train.adam(0.1)
+          });
 
-            const inputs = tf.tensor(data.map(p => [p.x, p.y]));
-            const labels = tf.tensor(data.map(p => p.label));
+          const inputs = tf.tensor(data.map(p => [p.x, p.y]));
+          const labels = tf.tensor(data.map(p => p.label));
 
-            await model.fit(inputs, labels, {
-                batchSize: 40,
-                epochs: 20,
-                callbacks: tfvis.show.fitCallbacks(
-                    { name: '训练效果' },
-                    ['loss']
-                )
-            });
+          await model.fit(inputs, labels, {
+              batchSize: 40,
+              epochs: 20,
+              callbacks: tfvis.show.fitCallbacks(
+                  { name: '训练效果' },
+                  ['loss']
+              )
+          });
 
         })
         return {

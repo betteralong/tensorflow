@@ -1,8 +1,9 @@
 <template>
     <div>
-        <p>声控</p>
+        <p>智能KTV</p>
         监听开关：<input type="checkbox" v-model="checked" @change="onCheck" />
-        <video ref="videoRef" class="material-detail__preview__video" controls="" :src="music"></video>
+        <video ref="videoRef" controls="" :src="music"></video>
+        <p>当前指令：{{label}}</p>
     </div>
 </template>
 
@@ -13,8 +14,9 @@ export default {
     setup() {
         const checked = ref(false)
         const videoRef = ref()
+        const label = ref('无');
         let transferRecognizer;
-        const MODEL_PATH = 'http://172.16.64.5:3000';
+        const MODEL_PATH = 'http://127.0.0.1:3000';
 
 
         let index = 0;
@@ -32,8 +34,6 @@ export default {
             } else {
                 index = 0;
             }
-            console.log('audioRef.value',videoRef.value)
-            // videoRef.value.pause();
             music.value = musicList[index];
             nextTick(() => {
                 videoRef.value.play();
@@ -41,7 +41,18 @@ export default {
         }
 
         const pause = () => {
-            ideoRef.value.pause();
+            videoRef.value.pause();
+        }
+
+        const play = () => {
+          videoRef.value.play()
+        }
+
+
+        const handle = {
+          "切歌": nextMusic,
+          "暂停": pause,
+          '播放':play
         }
 
         const onCheck = async() => {
@@ -50,8 +61,8 @@ export default {
                     const { scores } = result;
                     const labels = transferRecognizer.wordLabels();
                     const index = scores.indexOf(Math.max(...scores));
-                    console.log('result', result)
-                    // window.play(labels[index]);
+                    label.value = labels[index]
+                    handle[labels[index]]()
                 }, {
                     overlapFactor: 0,
                     probabilityThreshold: 0.75
@@ -69,14 +80,15 @@ export default {
                 MODEL_PATH + '/speech/metadata.json',
             );
             await recognizer.ensureModelLoaded();
-            transferRecognizer = recognizer.createTransfer('轮播图');
-            const res = await fetch(MODEL_PATH + '/slider/data.bin');
+            transferRecognizer = recognizer.createTransfer('智能KTV');
+            const res = await fetch(MODEL_PATH + '/music/data.bin');
             const arrayBuffer = await res.arrayBuffer();
             transferRecognizer.loadExamples(arrayBuffer);
             await transferRecognizer.train({ epochs: 30 });
         })
 
         return {
+            label,
             music,
             checked,
             videoRef,
